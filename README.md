@@ -3,7 +3,7 @@
 Front end of [Bitcoin Spark App] https://github.com/Antonio90/BitcoinSpark.git
 
 
-##Run
+
 
 ```
     npm install
