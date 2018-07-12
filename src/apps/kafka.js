@@ -4,7 +4,10 @@ const wss = require(require('path').join(__dirname, 'websocket')).wss;
 const fileConfig = require(require('path').join(__dirname, '..', 'config' , 'configurations'));
 const config = fileConfig.config;
 
-const client = new kafka.Client(config.kafka.host + ":" + config.kafka.port);
+const kafkaBroker = config.kafka.host + ":" + config.kafka.port;
+console.info("Kafka broker connectiong..." + kafkaBroker);
+
+const client = new kafka.Client(kafkaBroker);
 const topics = [
     {
         topic: config.kafka.topic

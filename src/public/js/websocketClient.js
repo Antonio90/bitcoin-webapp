@@ -1,7 +1,7 @@
 if ("WebSocket" in window) {
 
     // Let us open a web socket
-    var ws = new WebSocket("ws://10.28.121.74:9087");
+    var ws = new WebSocket("ws://localhost:9087");
 
     ws.onopen = function() {
         ws.send("Open Connection");

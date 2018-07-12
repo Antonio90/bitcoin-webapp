@@ -2,7 +2,7 @@ let config = {};
 
 if (process.env.NODE_ENV === 'development') { // Sviluppo
     config = {
-        appName: 'Bitcoin FrontEnd',
+        appName: 'Bitcoin Webapp',
         locate:'it',
         pathLog4js: './log',
         log4js: {
@@ -69,7 +69,7 @@ if (process.env.NODE_ENV === 'development') { // Sviluppo
 
 if (process.env.NODE_ENV === 'production') { // Produzione
     config = {
-        appName: 'Bitcoin FrontEnd',
+        appName: 'Bitcoin Webapp',
         locate: 'it',
         pathLog4js: './log',
         log4js: {
