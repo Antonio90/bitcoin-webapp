@@ -1,0 +1,23 @@
+{
+  "name": "bitcoin-webapp",
+  "version": "0.0.1",
+  "description": "",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "start": "NODE_ENV=production node src/server.js",
+    "dev": "NODE_ENV=development nodemon src/server.js"
+  },
+  "author": "Antonio Riccardi",
+  "license": "Apache-2.0",
+  "homepage": "http:localhost:3000/",
+  "dependencies": {
+    "express": "^4.7.2",
+    "express-handlebars": "^3.0.0",
+    "kafka-node": "^2.6.1",
+    "ws": "^5.2.2"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.1"
+  }
+}

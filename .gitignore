@@ -1,0 +1,7 @@
+logs
+target
+.idea
+bitcoin-webapp.iml
+.idea/vcs.xml
+node_modules
+
