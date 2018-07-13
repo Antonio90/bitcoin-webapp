@@ -23,9 +23,14 @@ app.use(express.static(require('path').join(__dirname, '..', 'public')));
 
 app.get('/', function (req, res) {
     res.render('home', {
-        title: 'Bitcoin View Tree'
+        title: 'Home page'
     });
+});
 
+app.get('/livedata', function (req, res) {
+    res.render('liveData', {
+        title: 'Live blockchain data'
+    });
 });
 
 
