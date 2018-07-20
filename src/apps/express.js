@@ -33,6 +33,18 @@ app.get('/livedata', function (req, res) {
     });
 });
 
+app.get('/infotransaction', function (req, res) {
+    res.render('liveData', {
+        title: 'Live blockchain data',
+        hashTransaction: req.
+    });
+});
+
+app.get('/lastgraph', function (req, res) {
+    res.render('lastGraph', {
+        title: 'Last blochchain graph'
+    });
+});
 
 module.exports = {
     app: app

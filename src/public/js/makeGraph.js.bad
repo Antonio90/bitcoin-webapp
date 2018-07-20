@@ -1,0 +1,168 @@
+var width = '600',
+    height = '900';
+
+var svg = d3.select("svg")
+            .attr('width', width)
+            .attr('height', height);
+
+var force = d3.layout.force()
+    .size([width, height])
+    .linkDistance(60)
+    .charge(-200)
+    .on("tick", tick);
+
+
+var nodes = force.nodes();
+var links = force.links();
+var nodi = new Array();
+
+
+var initalizeGraph = function(){
+
+    var link = svg.selectAll(".link")
+        .data(links, function(l){
+            return {source: l.source, target: l.target, value: l.value}
+        });
+
+    link.enter()
+        .append("line")
+        .attr("class", "link")
+
+    link.append('title')
+        .text(function(d){
+            return d.value + "BTC";
+        });
+
+
+    link.exit()
+        .remove();
+
+    nodes = d3.values(nodes);
+    var node = svg.selectAll(".node")
+        .data(nodes, function(d){
+            return d.name;
+        });
+
+        node.enter()
+            .append("g")
+            .attr("class", "node")
+            .call(force.drag);
+
+        node.append("circle")
+            .attr("r", 12)
+            .on("mouseover", mouseover)
+            .on("mouseout", mouseout);
+
+        node.append("text")
+            .attr("x", 12)
+            .attr("dy", ".35em")
+            .text(function (d) {
+                return d.name;
+            });
+
+        node.exit()
+            .remove();
+
+    force.start();
+}
+
+initalizeGraph();
+
+
+
+var updateGraph = function(data) {
+
+
+    var parsedTree = parseData(data);
+
+
+
+    for(var i = 0; i < parsedTree.length; i++){
+        var pLink = parsedTree[i];
+        var link = {source: '', target: '', value: ''};
+        link.source = nodes[pLink.source] || (nodes[pLink.source] = {name: pLink.source, x: Math.random() *( 50 -30 ) + 30, y: Math.random() *( 50 -30 ) + 30} );
+        link.target = nodes[pLink.target] || (nodes[pLink.target] = {name: pLink.target, x: Math.random() *( 50 -30 ) + 30, y: Math.random() *( 50 -30 ) + 30 } );
+        link.value = pLink.value;
+        links.push(link);
+    }
+
+    initalizeGraph();
+
+}
+
+function tick() {
+
+    svg.selectAll(".link")
+        .attr("x1", function (d) {
+            return d.source.x;
+        })
+        .attr("y1", function (d) {
+            return d.source.y;
+        })
+        .attr("x2", function (d) {
+            return d.target.x;
+        })
+        .attr("y2", function (d) {
+            return d.target.y;
+        });
+
+    svg.selectAll(".node")
+        .attr("transform", function (d) {
+            return "translate(" + d.x + "," + d.y + ")";
+        });
+}
+
+function mouseover() {
+    d3.select(this).select("circle").transition()
+        .duration(750)
+        .attr("r", 16);
+}
+
+function mouseout() {
+    d3.select(this).select("circle").transition()
+        .duration(750)
+        .attr("r", 8);
+}
+
+var parseData = function(data){
+
+    var parsedTree = [];
+
+    if(data){
+        try{
+
+            var json = JSON.parse(data);
+
+            if(json.transactionInputs.length > 0 ){
+
+                var source = '';
+
+                if(json.transactionInputs.length == 1){
+                    source = json.transactionInputs[0];
+                } else {
+                    var src = '';
+                    for(txi in json.transactionInputs){
+                        src += json.transactionInputs[txi] + '-';
+                    }
+                    source = src;
+                }
+
+                for(var t = 0; t < json.transactionDBOutputs.length; t++){
+                    var trident = {source: source, target: '', value: ''};
+                    var currentTX = json.transactionDBOutputs[t];
+                    trident.target = currentTX.hash;
+                    trident.value = currentTX.value.toString();
+                    parsedTree.push(trident);
+                    console.info('New trident ' + JSON.stringify(trident));
+                }
+
+            }
+
+        } catch (e) {
+            console.info('Error parsing data from websocket');
+        }
+
+    }
+
+    return parsedTree;
+}

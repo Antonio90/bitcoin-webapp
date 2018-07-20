@@ -1,3 +1,4 @@
+/*
 
 var parsedTree = [];
 
@@ -5,7 +6,7 @@ var updateGraph = function(data) {
 
      parseData(data);
 
-    /*var links = [
+    /!*var links = [
         {source: "Microsoft", target: "Amazon", type: "licensing"},
         {source: "Microsoft", target: "HTC", type: "licensing"},
         {source: "Samsung", target: "Apple", type: "suit"},
@@ -34,7 +35,7 @@ var updateGraph = function(data) {
         {source: "Apple", target: "Samsung", type: "suit"},
         {source: "Kodak", target: "RIM", type: "suit"},
         {source: "Nokia", target: "Qualcomm", type: "suit"}
-    ];*/
+    ];*!/
 
 
 // Compute the distinct nodes from the links.
@@ -42,16 +43,17 @@ var updateGraph = function(data) {
     var links = [];
 
     $('svg').html('');
- /*   parsedTree.forEach(function (link) {
+ /!*   parsedTree.forEach(function (link) {
         link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
         link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
-    });*/
+    });*!/
 
     for(var i = 0; i < parsedTree.length; i++){
         var pLink = parsedTree[i];
-        var link = {source: '', target: ''};
+        var link = {source: '', target: '', value: ''};
         link.source = nodes[pLink.source] || (nodes[pLink.source] = {name: pLink.source});
         link.target = nodes[pLink.target] || (nodes[pLink.target] = {name: pLink.target});
+        link.value = pLink.value;
         links.push(link);
     }
 
@@ -75,6 +77,11 @@ var updateGraph = function(data) {
         .data(force.links())
         .enter().append("line")
         .attr("class", "link");
+
+    link.append('title')
+        .text(function(d){
+            return d.value;
+        })
 
     var node = svg.selectAll(".node")
         .data(force.nodes())
@@ -128,41 +135,4 @@ var updateGraph = function(data) {
     }
 }
 
-var parseData = function(data){
-
-    if(data){
-        try{
-
-            var json = JSON.parse(data);
-
-            if(json.transactionInputs.length > 0 ){
-
-                var source = '';
-
-                if(json.transactionInputs.length == 1){
-                    source = json.transactionInputs[0];
-                } else {
-                    var src = '';
-                    for(txi in json.transactionInputs){
-                        src += json.transactionInputs[txi] + '-';
-                    }
-                    source = src;
-                }
-
-                for(var t = 0; t < json.transactionDBOutputs.length; t++){
-                    var trident = {source: source, target: '',type: ''};
-                    var currentTX = json.transactionDBOutputs[t];
-                    trident.target = currentTX.hash;
-                    trident.type = currentTX.value.toString();
-                    parsedTree.push(trident);
-                    console.info('New trident ' + JSON.stringify(trident));
-                }
-
-            }
-
-        } catch (e) {
-            console.info('Error parsing data from websocket');
-        }
-
-    }
-}
+*/

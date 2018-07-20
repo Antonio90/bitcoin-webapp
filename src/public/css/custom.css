@@ -1,16 +1,38 @@
-.link {
-    fill: none;
-    stroke: #666;
-    stroke-width: 1.5px;
+@-webkit-keyframes blinker {
+    from {opacity:1.0;}
+    to {opacity: 0.1;}
 }
 
-.node circle {
-    fill: #ccc;
-    stroke: #fff;
-    stroke-width: 1.5px;
+html, body {
+    height: 100%;
+    margin: 0;
 }
 
-text {
-    font: 10px sans-serif;
-    pointer-events: none;
+.container {
+    min-height: 100%;
+}
+
+footer {
+    margin-top: -50px;
+}
+
+.hightlight {
+    background-color: rgba(41, 182, 246, 0.20)!important;
+}
+
+.dataTables_empty {
+    text-decoration: blink;
+    -webkit-animation-name: blinker;
+    -webkit-animation-duration: 0.6s;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: ease-in-out;
+    -webkit-animation-direction: alternate;
+}
+
+tr.even {
+    background-color: #eeeeee;
+}
+
+tr.odd {
+    background-color: #f6f6f6;
 }
