@@ -14,7 +14,8 @@ var dataTableConfig = {
     }
 };
 
-var transactionsTable = $('#realTimeTransactions').DataTable(dataTableConfig);
+
+var transactionsTable;
 
 var totalRows = 0;
 var updateTable = function(data) {
@@ -47,4 +48,8 @@ var updateTable = function(data) {
             console.info('Error parsing data from websocket');
         }
     }
+}
+
+var initializeTable = function(){
+    transactionsTable = $('#realTimeTransactions').DataTable(dataTableConfig);
 }

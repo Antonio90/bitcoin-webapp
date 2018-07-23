@@ -14,8 +14,15 @@ var neo4jSession = neo4jDriver.session();
 var hbs = exphbs.create({
     defaultLayout: 'main',
     layoutsDir: 'src/views/layouts/',
-    partialsDir: 'src/views/partials/'
-
+    partialsDir: 'src/views/partials/',
+    helpers: {
+        json : function(content) {
+            return JSON.stringify(content);
+        },
+        splitTransaction : function(content){
+            return content.split('-');
+        }
+    }
 });
 
 app.set('views', require('path').join(__dirname, '..', 'views' ));
@@ -37,19 +44,17 @@ app.get('/livedata', function (req, res) {
     });
 });
 
-app.get('/infotransaction', function (req, res) {
+app.get('/infotransaction', function (req, res, next ) {
 
     var transactionID = req.query.id || '';
 
     if(transactionID != ''){
 
-        findTransaction(res, transactionID);
+        findTransaction(res, req, next, transactionID);
 
     } else {
 
-        res.render('errorPage' ,{
-            title: 'Page not found 404'
-        })
+        return next('No transaction id');
 
     }
 
@@ -62,7 +67,15 @@ app.get('/lastgraph', function (req, res) {
 });
 
 
-var findTransaction = function (res, transactionID){
+app.use(function(err, req, res, next){
+    res.status(404).render('errorPage' , {
+            title: 'Page not found 404',
+            error: err
+    })
+})
+
+
+var findTransaction = function (res, req, next, transactionID){
 
     neo4jSession
 
@@ -72,28 +85,32 @@ var findTransaction = function (res, transactionID){
         .then(function (result) {
 
             console.log(result);
-            var data = result.records.map(function(record){
-                    return  {
-                        source: record._fields[0],
-                        relation: record._fields[1],
-                        destination: record._fields[2]
-                    }
-                });
+            var data = [];
+            var totalBTC = 0.0;
+            for(k in result.records){
+                var record = result.records[k];
+                totalBTC += Number(record._fields[1].properties.value);
+                d = {
+                    source: record._fields[0],
+                    relation: record._fields[1],
+                    destination: record._fields[2]
+                };
+                data.push(d);
+            }
 
             res.render('transactionInfo', {
-                title: 'Live blockchain data',
+                title: 'Info transaction ' + transactionID,
                 hashTransaction: transactionID,
-                transaction: data
+                transaction: data,
+                totalBTC: totalBTC
             });
             neo4jSession.close();
 
         })
         .catch(function (error) {
             console.log(error);
-            res.render('noTransaction', {
-                title: 'No transaction found'
-            });
             neo4jSession.close();
+            return next('Database Exception');
         });
 }
 

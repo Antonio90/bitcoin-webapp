@@ -16,7 +16,7 @@ const topics = [
 const options = {
     autoCommit: true,
     encoding: 'utf8',
-    groupId: Math.random().toString()
+    groupId: 'bitcoin-webapp' //Math.random().toString()
 };
 
 const consumer = new kafka.HighLevelConsumer(client, topics, options);
