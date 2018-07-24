@@ -1,138 +1,167 @@
-/*
+//http://bl.ocks.org/fancellu/2c782394602a93921faff74e594d1bb1
+var makeSVGTransaction = function(json, idSvg) {
 
-var parsedTree = [];
+    var colors = d3.scaleOrdinal(d3.schemeCategory10);
 
-var updateGraph = function(data) {
+    var svg = d3.select("#" + idSvg),
+        width = + $("#" + idSvg).width(),
+        height = +svg.attr("height"),
+        node,
+        link;
 
-     parseData(data);
+    svg.append('defs').append('marker')
+        .attrs({'id':'arrowhead',
+            'viewBox':'-0 -5 10 10',
+            'refX':13,
+            'refY':0,
+            'orient':'auto',
+            'markerWidth':13,
+            'markerHeight':13,
+            'xoverflow':'visible'})
+        .append('svg:path')
+        .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+        .attr('fill', '#999')
+        .style('stroke','none');
 
-    /!*var links = [
-        {source: "Microsoft", target: "Amazon", type: "licensing"},
-        {source: "Microsoft", target: "HTC", type: "licensing"},
-        {source: "Samsung", target: "Apple", type: "suit"},
-        {source: "Motorola", target: "Apple", type: "suit"},
-        {source: "Nokia", target: "Apple", type: "resolved"},
-        {source: "HTC", target: "Apple", type: "suit"},
-        {source: "Kodak", target: "Apple", type: "suit"},
-        {source: "Microsoft", target: "Barnes & Noble", type: "suit"},
-        {source: "Microsoft", target: "Foxconn", type: "suit"},
-        {source: "Oracle", target: "Google", type: "suit"},
-        {source: "Apple", target: "HTC", type: "suit"},
-        {source: "Microsoft", target: "Inventec", type: "suit"},
-        {source: "Samsung", target: "Kodak", type: "resolved"},
-        {source: "LG", target: "Kodak", type: "resolved"},
-        {source: "RIM", target: "Kodak", type: "suit"},
-        {source: "Sony", target: "LG", type: "suit"},
-        {source: "Kodak", target: "LG", type: "resolved"},
-        {source: "Apple", target: "Nokia", type: "resolved"},
-        {source: "Qualcomm", target: "Nokia", type: "resolved"},
-        {source: "Apple", target: "Motorola", type: "suit"},
-        {source: "Microsoft", target: "Motorola", type: "suit"},
-        {source: "Motorola", target: "Microsoft", type: "suit"},
-        {source: "Huawei", target: "ZTE", type: "suit"},
-        {source: "Ericsson", target: "ZTE", type: "suit"},
-        {source: "Kodak", target: "Samsung", type: "resolved"},
-        {source: "Apple", target: "Samsung", type: "suit"},
-        {source: "Kodak", target: "RIM", type: "suit"},
-        {source: "Nokia", target: "Qualcomm", type: "suit"}
-    ];*!/
+    var simulation = d3.forceSimulation()
+        .force("link", d3.forceLink().id(function (d) {
+            return d.hash;}).distance(100).strength(1))
+        .force("charge", d3.forceManyBody())
+        .force("center", d3.forceCenter(width / 2, height / 2));
 
+    var dati = getLinksandNodes(json);
+    update(dati.links, d3.values(dati.nodes));
 
-// Compute the distinct nodes from the links.
-    var nodes = {};
-    var links = [];
+    function update(links, nodes) {
+        link = svg.selectAll(".link")
+            .data(links)
+            .enter()
+            .append("line")
+            .attr("class", "link")
+            .attr('marker-end','url(#arrowhead)')
 
-    $('svg').html('');
- /!*   parsedTree.forEach(function (link) {
-        link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
-        link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
-    });*!/
+        link.append("title")
+            .text(function (d) {return d.value;});
 
-    for(var i = 0; i < parsedTree.length; i++){
-        var pLink = parsedTree[i];
-        var link = {source: '', target: '', value: ''};
-        link.source = nodes[pLink.source] || (nodes[pLink.source] = {name: pLink.source});
-        link.target = nodes[pLink.target] || (nodes[pLink.target] = {name: pLink.target});
-        link.value = pLink.value;
-        links.push(link);
+        edgepaths = svg.selectAll(".edgepath")
+            .data(links)
+            .enter()
+            .append('path')
+            .attrs({
+                'class': 'edgepath',
+                'fill-opacity': 0,
+                'stroke-opacity': 0,
+                'id': function (d, i) {return 'edgepath' + i}
+            })
+            .style("pointer-events", "none");
+
+        edgelabels = svg.selectAll(".edgelabel")
+            .data(links)
+            .enter()
+            .append('text')
+            .style("pointer-events", "none")
+            .attrs({
+                'class': 'edgelabel',
+                'id': function (d, i) {return 'edgelabel' + i},
+                'font-size': 10,
+                'fill': '#aaa'
+            });
+
+        edgelabels.append('textPath')
+            .attr('xlink:href', function (d, i) {return '#edgepath' + i})
+            .style("text-anchor", "middle")
+            .style("pointer-events", "none")
+            .attr("startOffset", "50%")
+            .text(function (d) {return d.value});
+
+        node = svg.selectAll(".node")
+            .data(nodes)
+            .enter()
+            .append("g")
+            .attr("class", "node")
+            .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                //.on("end", dragended)
+            );
+
+        node.append("circle")
+            .attr("r", 5)
+            .style("fill", function (d, i) {return colors(i);})
+
+        node.append("title")
+            .text(function (d) {return d.hash;});
+
+        node.append("text")
+            .attr("dy", -3)
+            .text(function (d) {return d.hash;});
+
+        simulation
+            .nodes(nodes)
+            .on("tick", ticked);
+
+        simulation.force("link")
+            .links(links);
     }
 
-    var width = 1024,
-        height = 1000;
 
-    var force = d3.layout.force()
-        .nodes(d3.values(nodes))
-        .links(links)
-        .size([width, height])
-        .linkDistance(60)
-        .charge(-300)
-        .on("tick", tick)
-        .start();
-
-    var svg = d3.select("svg")
-        .attr("width", width)
-        .attr("height", height);
-
-    var link = svg.selectAll(".link")
-        .data(force.links())
-        .enter().append("line")
-        .attr("class", "link");
-
-    link.append('title')
-        .text(function(d){
-            return d.value;
-        })
-
-    var node = svg.selectAll(".node")
-        .data(force.nodes())
-        .enter().append("g")
-        .attr("class", "node")
-        .on("mouseover", mouseover)
-        .on("mouseout", mouseout)
-        .call(force.drag);
-
-    node.append("circle")
-        .attr("r", 8);
-
-    node.append("text")
-        .attr("x", 12)
-        .attr("dy", ".35em")
-        .text(function (d) {
-            return d.name;
-        });
-
-    function tick() {
+    function ticked() {
         link
-            .attr("x1", function (d) {
-                return d.source.x;
-            })
-            .attr("y1", function (d) {
-                return d.source.y;
-            })
-            .attr("x2", function (d) {
-                return d.target.x;
-            })
-            .attr("y2", function (d) {
-                return d.target.y;
-            });
+            .attr("x1", function (d) {return d.source.x;})
+            .attr("y1", function (d) {return d.source.y;})
+            .attr("x2", function (d) {return d.target.x;})
+            .attr("y2", function (d) {return d.target.y;});
 
         node
-            .attr("transform", function (d) {
-                return "translate(" + d.x + "," + d.y + ")";
-            });
+            .attr("transform", function (d) {return "translate(" + d.x + ", " + d.y + ")";});
+
+        edgepaths.attr('d', function (d) {
+            return 'M ' + d.source.x + ' ' + d.source.y + ' L ' + d.target.x + ' ' + d.target.y;
+        });
+
+        edgelabels.attr('transform', function (d) {
+            if (d.target.x < d.source.x) {
+                var bbox = this.getBBox();
+
+                rx = bbox.x + bbox.width / 2;
+                ry = bbox.y + bbox.height / 2;
+                return 'rotate(180 ' + rx + ' ' + ry + ')';
+            }
+            else {
+                return 'rotate(0)';
+            }
+        });
     }
 
-    function mouseover() {
-        d3.select(this).select("circle").transition()
-            .duration(750)
-            .attr("r", 16);
+    function dragstarted(d) {
+        if (!d3.event.active) simulation.alphaTarget(0.3).restart()
+        d.fx = d.x;
+        d.fy = d.y;
     }
 
-    function mouseout() {
-        d3.select(this).select("circle").transition()
-            .duration(750)
-            .attr("r", 8);
+    function dragged(d) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
     }
+
 }
 
-*/
+
+var getLinksandNodes = function(json) {
+
+    var data = {
+        nodes: {},
+        links: []
+    };
+
+    for(i in json){
+        var transaction = json[i];
+        var link = {source: '', target:'', value:''};
+        link.source = data.nodes[transaction.source.properties.hash] || (data.nodes[transaction.source.properties.hash] = {hash: transaction.source.properties.hash});
+        link.target = data.nodes[transaction.destination.properties.hash] || (data.nodes[transaction.destination.properties.hash] = {hash: transaction.destination.properties.hash});
+        link.value = transaction.relation.properties.value + "BTC";
+        data.links.push(link);
+    }
+
+    return data;
+}

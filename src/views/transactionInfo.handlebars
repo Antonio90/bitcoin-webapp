@@ -38,7 +38,7 @@
     <svg id="transactionSVG" style="background-color: #ececec; width:100%;" height="350"></svg>
 </div>
 <div class="row">
-    <table class="table">
+    <table class="table striped">
 
         <thead>
             <tr>
@@ -50,9 +50,9 @@
         <tbody>
             {{#each transaction}}
                 <tr>
-                    <td>{{splitTransaction source.properties.hash}}</td>
+                    <td>{{source.properties.hash}}</td>
                     <td>{{destination.properties.hash}}</td>
-                    <td>{{relation.properties.value}}</td>
+                    <td>{{relation.properties.value}} BTC</td>
                 </tr>
             {{/each}}
         </tbody>

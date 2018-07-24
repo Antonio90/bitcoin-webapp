@@ -32,7 +32,7 @@ var updateTable = function(data) {
                     totalValue += json.transactionDBOutputs[tOut].value;
                 }
                 var row = [];
-                var link = "<a href='/infotransaction?id=" + json.transactionHash + "'>" + json.transactionHash + "</a>";
+                var link = "<a target='_blank' href='/infotransaction?id=" + json.transactionHash + "'>" + json.transactionHash + "</a>";
                 row.push(link);
                 row.push(totalValue + " BTC");
                 row.push(totalRows++);

@@ -18,9 +18,6 @@ var hbs = exphbs.create({
     helpers: {
         json : function(content) {
             return JSON.stringify(content);
-        },
-        splitTransaction : function(content){
-            return content.split('-');
         }
     }
 });
@@ -60,10 +57,8 @@ app.get('/infotransaction', function (req, res, next ) {
 
 });
 
-app.get('/lastgraph', function (req, res) {
-    res.render('lastGraph', {
-        title: 'Last blochchain graph'
-    });
+app.get('/lastgraph', function (req, res, next) {
+    findLastGraph(req,res,next);
 });
 
 
@@ -73,6 +68,40 @@ app.use(function(err, req, res, next){
             error: err
     })
 })
+
+var findLastGraph = function(req, res,next){
+
+    neo4jSession
+
+        .run('MATCH (c)-[r]->(b) return c,r,b limit 250' ,
+            '')
+
+        .then(function (result) {
+
+            var data = [];
+            for(k in result.records){
+                var record = result.records[k];
+                d = {
+                    source: record._fields[0],
+                    relation: record._fields[1],
+                    destination: record._fields[2]
+                };
+                data.push(d);
+            }
+
+            res.render('lastGraph', {
+                title: 'Last graph',
+                transaction: data
+            });
+            neo4jSession.close();
+
+        })
+        .catch(function (error) {
+            console.log(error);
+            neo4jSession.close();
+            return next('Database Exception');
+        });
+}
 
 
 var findTransaction = function (res, req, next, transactionID){

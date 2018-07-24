@@ -29,12 +29,17 @@ html, body {
     -webkit-animation-direction: alternate;
 }
 
-tr.even {
+/*tr.even {
     background-color: #eeeeee;
 }
 
 tr.odd {
     background-color: #f6f6f6;
+}*/
+
+.svgClass {
+    width: 100%;
+    background-color: #ececec;
 }
 
 .node {}

@@ -1,1 +1,6 @@
-<svg width="650" height="700"></svg>
+<svg id="totalGraphSVG" class="svgClass" height="650"></svg>
+<script>
+    var json = {{{json transaction}}};
+    console.info(json);
+    makeSVGTransaction(json, 'totalGraphSVG');
+</script>
