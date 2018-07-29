@@ -1,0 +1,19 @@
+<table class="table striped" id="pageRankTable">
+    <thead>
+        <tr>
+            <td>Hash</td>
+            <td>Page Rank</td>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each pageRankNodes}}
+            <tr>
+                <td>{{ hash }}</td>
+                <td>{{ pageRankValue }}</td>
+            </tr>
+        {{/each}}
+    </tbody>
+</table>
+<script>
+    $("#pageRankTable").dataTable({order:[1,'desc']});
+</script>

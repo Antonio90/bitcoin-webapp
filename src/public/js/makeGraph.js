@@ -1,5 +1,5 @@
 //http://bl.ocks.org/fancellu/2c782394602a93921faff74e594d1bb1
-var makeSVGTransaction = function(json, idSvg) {
+var makeSVGTransaction = function(json, idSvg, big, isRank) {
 
     var colors = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -9,7 +9,13 @@ var makeSVGTransaction = function(json, idSvg) {
         node,
         link;
 
-    svg.append('defs').append('marker')
+    var zoomLayer = svg.append('g');
+
+    svg.call(d3.zoom().on('zoom', function(){
+        zoomLayer.attr('transform', d3.event.transform);
+    }));
+
+    zoomLayer.append('defs').append('marker')
         .attrs({'id':'arrowhead',
             'viewBox':'-0 -5 10 10',
             'refX':13,
@@ -23,17 +29,18 @@ var makeSVGTransaction = function(json, idSvg) {
         .attr('fill', '#999')
         .style('stroke','none');
 
+
     var simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function (d) {
             return d.hash;}).distance(100).strength(1))
         .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(width / 2, height / 2));
 
-    var dati = getLinksandNodes(json);
+    var dati = getLinksandNodes(json, isRank);
     update(dati.links, d3.values(dati.nodes));
 
     function update(links, nodes) {
-        link = svg.selectAll(".link")
+        link = zoomLayer.selectAll(".link")
             .data(links)
             .enter()
             .append("line")
@@ -43,7 +50,7 @@ var makeSVGTransaction = function(json, idSvg) {
         link.append("title")
             .text(function (d) {return d.value;});
 
-        edgepaths = svg.selectAll(".edgepath")
+        edgepaths = zoomLayer.selectAll(".edgepath")
             .data(links)
             .enter()
             .append('path')
@@ -55,7 +62,7 @@ var makeSVGTransaction = function(json, idSvg) {
             })
             .style("pointer-events", "none");
 
-        edgelabels = svg.selectAll(".edgelabel")
+        edgelabels = zoomLayer.selectAll(".edgelabel")
             .data(links)
             .enter()
             .append('text')
@@ -74,7 +81,7 @@ var makeSVGTransaction = function(json, idSvg) {
             .attr("startOffset", "50%")
             .text(function (d) {return d.value});
 
-        node = svg.selectAll(".node")
+        node = zoomLayer.selectAll(".node")
             .data(nodes)
             .enter()
             .append("g")
@@ -82,7 +89,7 @@ var makeSVGTransaction = function(json, idSvg) {
             .call(d3.drag()
                     .on("start", dragstarted)
                     .on("drag", dragged)
-                //.on("end", dragended)
+                    .on("end", dragended)
             );
 
         node.append("circle")
@@ -90,11 +97,13 @@ var makeSVGTransaction = function(json, idSvg) {
             .style("fill", function (d, i) {return colors(i);})
 
         node.append("title")
-            .text(function (d) {return d.hash;});
+            .text(function (d) {return isRank ? d.pageRankValue : d.hash;});
 
+        if(!big)
         node.append("text")
             .attr("dy", -3)
-            .text(function (d) {return d.hash;});
+            .attr("font-size", 14)
+            .text(function (d) {return isRank ? d.pageRankValue : d.hash;});
 
         simulation
             .nodes(nodes)
@@ -144,10 +153,16 @@ var makeSVGTransaction = function(json, idSvg) {
         d.fy = d3.event.y;
     }
 
+    function dragended(d){
+        if(!d3.event.active) simulation.alphaTarget(0);
+        d.fx = undefined;
+        d.fy = undefined;
+    }
+
 }
 
 
-var getLinksandNodes = function(json) {
+var getLinksandNodes = function(json, isRank) {
 
     var data = {
         nodes: {},
@@ -157,9 +172,9 @@ var getLinksandNodes = function(json) {
     for(i in json){
         var transaction = json[i];
         var link = {source: '', target:'', value:''};
-        link.source = data.nodes[transaction.source.properties.hash] || (data.nodes[transaction.source.properties.hash] = {hash: transaction.source.properties.hash});
-        link.target = data.nodes[transaction.destination.properties.hash] || (data.nodes[transaction.destination.properties.hash] = {hash: transaction.destination.properties.hash});
-        link.value = transaction.relation.properties.value + "BTC";
+        link.source = data.nodes[transaction.source.properties.hash] || (data.nodes[transaction.source.properties.hash] = {hash: transaction.source.properties.hash, pageRankValue: transaction.source.properties.pageRankValue ? transaction.source.properties.pageRankValue : '' });
+        link.target = data.nodes[transaction.destination.properties.hash] || (data.nodes[transaction.destination.properties.hash] = {hash: transaction.destination.properties.hash, pageRankValue: transaction.destination.properties.pageRankValue ? transaction.destination.properties.pageRankValue : '' });
+        link.value = Number(transaction.relation.properties.value).toFixed(3) + " BTC";
         data.links.push(link);
     }
 

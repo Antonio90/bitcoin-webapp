@@ -61,6 +61,10 @@ app.get('/lastgraph', function (req, res, next) {
     findLastGraph(req,res,next);
 });
 
+app.get('/rankgraph', function (req, res, next) {
+    findRankGraph(req,res,next);
+});
+
 
 app.use(function(err, req, res, next){
     res.status(404).render('errorPage' , {
@@ -73,7 +77,7 @@ var findLastGraph = function(req, res,next){
 
     neo4jSession
 
-        .run('MATCH (c)-[r]->(b) return c,r,b limit 250' ,
+        .run('MATCH (c:hash_pub)-[r:send]->(b:hash_pub) return c,r,b' ,
             '')
 
         .then(function (result) {
@@ -92,6 +96,45 @@ var findLastGraph = function(req, res,next){
             res.render('lastGraph', {
                 title: 'Last graph',
                 transaction: data
+            });
+            neo4jSession.close();
+
+        })
+        .catch(function (error) {
+            console.log(error);
+            neo4jSession.close();
+            return next('Database Exception');
+        });
+}
+
+var findRankGraph = function(req, res,next){
+
+    neo4jSession
+
+        .run('Match (a:has_rank)\n' +
+            'Match (b:hash_pub)-[r:send]->(c)\n' +
+            'where id(b) = toInt(a.referenceId)\n' +
+            'SET b.pageRankValue = a.rank\n' +
+            'return b,r,c',
+            '')
+
+        .then(function (result) {
+
+            var data = [];
+            for(k in result.records){
+                var record = result.records[k];
+                d = {
+                    source: record._fields[0],
+                    relation: record._fields[1],
+                    destination: record._fields[2]
+                };
+                data.push(d);
+            }
+
+            res.render('rankGraph', {
+                title: 'PageRank graph',
+                transaction: data,
+                pageRankNodes: getPageRankNodes(data)
             });
             neo4jSession.close();
 
@@ -142,6 +185,21 @@ var findTransaction = function (res, req, next, transactionID){
             return next('Database Exception');
         });
 }
+
+var getPageRankNodes = function(json) {
+
+
+    var nodes = {};
+
+    for(i in json){
+        var transaction = json[i];
+        nodes[transaction.source.properties.hash] || (nodes[transaction.source.properties.hash] = {hash: transaction.source.properties.hash, pageRankValue: transaction.source.properties.pageRankValue  });
+        nodes[transaction.destination.properties.hash] || (nodes[transaction.destination.properties.hash] = {hash: transaction.destination.properties.hash, pageRankValue: transaction.destination.properties.pageRankValue  });
+    }
+
+    return nodes;
+}
+
 
 module.exports = {
     app: app

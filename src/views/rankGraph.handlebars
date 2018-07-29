@@ -1,0 +1,14 @@
+<div class="card-panel orange lighten-1">
+    <h4 class="white-text text-darken-2">Rank graph</h4>
+</div>
+<div class="row">
+    <svg id="rankGraphSVG" class="svgClass" height="650"></svg>
+</div>
+<div class="row">
+   {{> pageRankTable }}
+</div>
+<script>
+    var json = {{{json transaction}}};
+    console.info(json);
+    makeSVGTransaction(json, 'rankGraphSVG', true, true);
+</script>

@@ -29,13 +29,9 @@ html, body {
     -webkit-animation-direction: alternate;
 }
 
-/*tr.even {
-    background-color: #eeeeee;
+.card-panel {
+    padding: 5px;
 }
-
-tr.odd {
-    background-color: #f6f6f6;
-}*/
 
 .svgClass {
     width: 100%;

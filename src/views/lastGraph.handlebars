@@ -1,6 +1,11 @@
-<svg id="totalGraphSVG" class="svgClass" height="650"></svg>
+<div class="card-panel orange lighten-1">
+    <h4 class="white-text text-darken-2">Last transactions graph</h4>
+</div>
+<div class="row">
+    <svg id="totalGraphSVG" class="svgClass" height="650"></svg>
+</div>
 <script>
     var json = {{{json transaction}}};
     console.info(json);
-    makeSVGTransaction(json, 'totalGraphSVG');
+    makeSVGTransaction(json, 'totalGraphSVG', true, false);
 </script>

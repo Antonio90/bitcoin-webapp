@@ -17,7 +17,6 @@ driver.onCompleted = function () {
 
 driver.onError = function (error) {
   console.error('Connection to neo4j refused!', error);
-  process.exit(1);
 };
 
 process.on('SIGINT', function () {
