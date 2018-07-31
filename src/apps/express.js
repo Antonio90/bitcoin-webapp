@@ -61,10 +61,6 @@ app.get('/lastgraph', function (req, res, next) {
     findLastGraph(req,res,next);
 });
 
-app.get('/rankgraph', function (req, res, next) {
-    findRankGraph(req,res,next);
-});
-
 
 app.use(function(err, req, res, next){
     res.status(404).render('errorPage' , {
@@ -73,31 +69,46 @@ app.use(function(err, req, res, next){
     })
 })
 
+
 var findLastGraph = function(req, res,next){
 
     neo4jSession
 
-        .run('MATCH (c:hash_pub)-[r:send]->(b:hash_pub) return c,r,b' ,
+        .run('MATCH (n:hash_pub)-[r:send]->(b:hash_pub) return n,r,b' ,
             '')
 
         .then(function (result) {
 
-            var data = [];
-            for(k in result.records){
-                var record = result.records[k];
-                d = {
-                    source: record._fields[0],
-                    relation: record._fields[1],
-                    destination: record._fields[2]
-                };
-                data.push(d);
-            }
+            var allGraph = result;
 
-            res.render('lastGraph', {
-                title: 'Last graph',
-                transaction: data
-            });
-            neo4jSession.close();
+            neo4jSession.run(
+                'MATCH (n:has_rank),(b:hash_pub)\n' +
+                'WHERE id(b) = n.referenceId\n' +
+                'return b{.*, rank: n.rank} order by n.rank desc','') .then(function(result){
+
+                var data = [];
+                for(k in allGraph.records){
+                    var record = allGraph.records[k];
+                    d = {
+                        source: record._fields[0],
+                        relation: record._fields[1],
+                        destination: record._fields[2]
+                    };
+                    data.push(d);
+                }
+
+
+                var rankNodes = addPageRankNode(result);
+
+
+                res.render('lastGraph', {
+                    title: 'Last graph',
+                    transaction: data,
+                    pageRankNodes: rankNodes
+                });
+                neo4jSession.close();
+
+            })
 
         })
         .catch(function (error) {
@@ -106,46 +117,6 @@ var findLastGraph = function(req, res,next){
             return next('Database Exception');
         });
 }
-
-var findRankGraph = function(req, res,next){
-
-    neo4jSession
-
-        .run('Match (a:has_rank)\n' +
-            'Match (b:hash_pub)-[r:send]->(c)\n' +
-            'where id(b) = toInt(a.referenceId)\n' +
-            'SET b.pageRankValue = a.rank\n' +
-            'return b,r,c',
-            '')
-
-        .then(function (result) {
-
-            var data = [];
-            for(k in result.records){
-                var record = result.records[k];
-                d = {
-                    source: record._fields[0],
-                    relation: record._fields[1],
-                    destination: record._fields[2]
-                };
-                data.push(d);
-            }
-
-            res.render('rankGraph', {
-                title: 'PageRank graph',
-                transaction: data,
-                pageRankNodes: getPageRankNodes(data)
-            });
-            neo4jSession.close();
-
-        })
-        .catch(function (error) {
-            console.log(error);
-            neo4jSession.close();
-            return next('Database Exception');
-        });
-}
-
 
 var findTransaction = function (res, req, next, transactionID){
 
@@ -156,7 +127,7 @@ var findTransaction = function (res, req, next, transactionID){
 
         .then(function (result) {
 
-            console.log(result);
+
             var data = [];
             var totalBTC = 0.0;
             for(k in result.records){
@@ -186,17 +157,14 @@ var findTransaction = function (res, req, next, transactionID){
         });
 }
 
-var getPageRankNodes = function(json) {
 
-
-    var nodes = {};
-
-    for(i in json){
-        var transaction = json[i];
-        nodes[transaction.source.properties.hash] || (nodes[transaction.source.properties.hash] = {hash: transaction.source.properties.hash, pageRankValue: transaction.source.properties.pageRankValue  });
-        nodes[transaction.destination.properties.hash] || (nodes[transaction.destination.properties.hash] = {hash: transaction.destination.properties.hash, pageRankValue: transaction.destination.properties.pageRankValue  });
+var addPageRankNode = function(data) {
+    var rankNodes = [];
+    var nodes = [];
+    for(k in data.records) {
+        if (!rankNodes[data.records[k]._fields[0].hash])
+            nodes.push({ hash: data.records[k]._fields[0].hash, pageRank: data.records[k]._fields[0].rank });
     }
-
     return nodes;
 }
 

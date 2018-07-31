@@ -4,8 +4,10 @@
 <div class="row">
     <svg id="totalGraphSVG" class="svgClass" height="650"></svg>
 </div>
+<div class="row">
+    {{> pageRankTable }}
+</div>
 <script>
     var json = {{{json transaction}}};
-    console.info(json);
-    makeSVGTransaction(json, 'totalGraphSVG', true, false);
+    makeSVGTransaction(json, 'totalGraphSVG', true);
 </script>

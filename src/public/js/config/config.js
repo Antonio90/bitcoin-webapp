@@ -1,4 +1,4 @@
 const config = {
-    wsHost: '192.168.1.116',
+    wsHost: '10.28.121.74',
     wsPort: '9087'
 }

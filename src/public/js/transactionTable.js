@@ -31,16 +31,18 @@ var updateTable = function(data) {
                 for(tOut in json.transactionDBOutputs){
                     totalValue += json.transactionDBOutputs[tOut].value;
                 }
-                var row = [];
-                var link = "<a target='_blank' href='/infotransaction?id=" + json.transactionHash + "'>" + json.transactionHash + "</a>";
-                row.push(link);
-                row.push(totalValue + " BTC");
-                row.push(totalRows++);
-                row.push(json);
-                var addedRow = transactionsTable.row.add(row).draw();
-                var node = addedRow.node();
-                $('#realTimeTransactions tr').removeClass('hightlight');
-                $(node).addClass('hightlight');
+                if(totalValue != 0.0) {
+                    var row = [];
+                    var link = "<a target='_blank' href='/infotransaction?id=" + json.transactionHash + "'>" + json.transactionHash + "</a>";
+                    row.push(link);
+                    row.push(totalValue + " BTC");
+                    row.push(totalRows++);
+                    row.push(json);
+                    var addedRow = transactionsTable.row.add(row).draw();
+                    var node = addedRow.node();
+                    $('#realTimeTransactions tr').removeClass('hightlight');
+                    $(node).addClass('hightlight');
+                }
 
             }
 
